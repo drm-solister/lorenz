@@ -8,4 +8,3 @@ edition = "2021"
 [dependencies]
 kiss3d = "0.34"
 nalgebra = "0.30"
-kiss3d_conrod = "*"

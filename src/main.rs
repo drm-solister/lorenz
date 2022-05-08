@@ -9,7 +9,7 @@ use kiss3d::light::Light;
 fn main() {
     let mut window = Window::new("Kiss3d: cube");
     window.set_light(Light::StickToCamera);
-    let framerate = 75.0;
+    let framerate = 60.0;
     window.set_framerate_limit(Some(framerate as u64));
     //window.set_background_color(0.255, 0.486, 0.620);
 
@@ -23,9 +23,9 @@ fn main() {
     let k10 = Point3::new(0.0, 0.0, 10.0);
     
 
-    let mut cube = window.add_cube(1.0, 1.0, 1.0);
-    cube.set_color(1.0, 0.0, 0.0);
-    let rot = UnitQuaternion::from_axis_angle(&Vector3::y_axis(), 0.014);
+    // let mut cube = window.add_cube(1.0, 1.0, 1.0);
+    // cube.set_color(1.0, 0.0, 0.0);
+    // let rot = UnitQuaternion::from_axis_angle(&Vector3::y_axis(), 0.014);
 
     let mut x = 1.0;
     let mut y = -1.0;
@@ -36,20 +36,20 @@ fn main() {
     let c = 2.6667;
 
     let start = Point3::new(x,y,z);
-    const HISTORY_LEN: usize = 500; // will keep 500 points
-    let mut history: [Option<Point3<f32>>; HISTORY_LEN] = [None; 500];
+    const HISTORY_LEN: usize = 3; // will keep this many points
+    let mut history: [Option<Point3<f32>>; HISTORY_LEN] = [None; HISTORY_LEN];
     let mut index = 0;
     history[index] = Some(start);
 
     while window.render() {
-        cube.prepend_to_local_rotation(&rot);
+        // cube.prepend_to_local_rotation(&rot);
 
         // 10*unit vectors
         window.draw_line(&origin, &i10, &red);
         window.draw_line(&origin, &j10, &green);
         window.draw_line(&origin, &k10, &blue);
 
-        index = index+1%HISTORY_LEN;
+        index = (index+1)%HISTORY_LEN;
 
         let dx = a*(y-x)/framerate;
         let dy = (x*(b-z)-y)/framerate;
@@ -63,10 +63,23 @@ fn main() {
         let particle = Point3::new(x as f32, y as f32, z as f32);
         history[index] = Some(particle);
 
-        for point in history {
-            match point {
-                Some(p) => window.draw_point(&point.unwrap(), &red),
-                _ => {},
+        // index is front of queue
+        // index-1 is back of queue
+        // println!("front of queue at index {:?}", index);
+        // starts at the front of the queue
+        // iterates the length of the queue
+        for i in index+1..HISTORY_LEN+index {
+            let first_index = i%HISTORY_LEN;
+            let next_index = (i+1)%HISTORY_LEN;
+
+            // println!("first index: {:?}, second index: {:?}", first_index, next_index);
+
+            if next_index == 0 {
+                continue;
+            }
+            
+            if !history[next_index].is_none() && !history[first_index].is_none() {
+                window.draw_line(&history[first_index].unwrap(), &history[next_index].unwrap(), &red);
             }
             
         }
